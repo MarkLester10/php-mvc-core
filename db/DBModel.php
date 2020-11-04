@@ -9,12 +9,20 @@ use marklester\phpmvc\Application;
 
 abstract class DBModel extends Model
 {
+    public int $total_records;
+
     abstract public function tableName(): string;
 
     abstract public function attributes(): array;
 
     abstract public function primaryKey(): string;
 
+    public static function prepare($SQLStatement)
+    {
+        return Application::$app->db->pdo->prepare($SQLStatement);
+    }
+
+    //INSERT to Database
     public function save()
     {
         $tableName = $this->tableName();
@@ -30,6 +38,7 @@ abstract class DBModel extends Model
         return true;
     }
 
+    //Select One from Database
     static public function findOne($where) //['email'=>hello@email.com,'firstname'=>Hello]
     {
         //static tells the actual class on which finOne will be called
@@ -51,8 +60,21 @@ abstract class DBModel extends Model
         return $statement->fetchObject(static::class);
     }
 
-    public static function prepare($SQLStatement)
+
+    //Find all in database
+    static public function findAll($where)
     {
-        return Application::$app->db->pdo->prepare($SQLStatement);
+        $tableName = static::tableName();
+        $attributes = array_keys($where);
+
+        $sql = implode('AND ', array_map(fn ($attr) => "$attr = :$attr", $attributes));
+
+        $statement = self::prepare("SELECT * FROM $tableName WHERE $sql");
+
+        foreach ($where as $key => $item) {
+            $statement->bindValue(":$key", $item);
+        }
+        $statement->execute();
+        return $statement->fetchAll(\PDO::FETCH_OBJ);
     }
 }
