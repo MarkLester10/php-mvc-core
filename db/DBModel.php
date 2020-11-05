@@ -65,15 +65,15 @@ abstract class DBModel extends Model
     static public function findAll($where)
     {
         $tableName = static::tableName();
-        $attributes = array_keys($where);
-
-        $sql = implode('AND ', array_map(fn ($attr) => "$attr = :$attr", $attributes));
-
-        $statement = self::prepare("SELECT * FROM $tableName WHERE $sql");
-
-        foreach ($where as $key => $item) {
-            $statement->bindValue(":$key", $item);
+        if ($where) {
+            $attributes = array_keys($where);
+            $sql = implode('AND ', array_map(fn ($attr) => "$attr = :$attr", $attributes));
+            $statement = self::prepare("SELECT * FROM $tableName WHERE $sql");
+            foreach ($where as $key => $item) {
+                $statement->bindValue(":$key", $item);
+            }
         }
+        $statement = self::prepare("SELECT * FROM $tableName");
         $statement->execute();
         return $statement->fetchAll(\PDO::FETCH_OBJ);
     }
