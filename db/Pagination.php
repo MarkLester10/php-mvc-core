@@ -37,13 +37,16 @@ class Pagination
 
     public function set_total_records()
     {
-        $attributes = array_keys($this->where);
+        if ($this->where) {
+            $attributes = array_keys($this->where);
 
-        $sql = implode('AND ', array_map(fn ($attr) => "$attr = :$attr", $attributes));
-        $statement = self::prepare("SELECT * FROM $this->tableName WHERE $sql");
-        foreach ($this->where as $key => $item) {
-            $statement->bindValue(":$key", $item);
+            $sql = implode('AND ', array_map(fn ($attr) => "$attr = :$attr", $attributes));
+            $statement = self::prepare("SELECT * FROM $this->tableName WHERE $sql");
+            foreach ($this->where as $key => $item) {
+                $statement->bindValue(":$key", $item);
+            }
         }
+        $statement = self::prepare("SELECT * FROM $this->tableName");
         $statement->execute();
         $this->total_records = $statement->rowCount();
     }
