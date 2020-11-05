@@ -21,5 +21,6 @@ class AuthMiddleware extends BasedMiddleware
                 Application::$app->response->redirect('/login');
             }
         }
+        Application::$app->response->redirect('/');
     }
 }
